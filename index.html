@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dragon Ball Legends Summon Simulator</title>
+  <style>
+    body {
+      background: url(images/green\ sky.png) no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      font-family: 'Arial Black', sans-serif;
+      text-align: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 10px;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+      box-shadow: 0 0 25px #0ff, 0 0 50px #0ff inset;
+      animation: glowBox 2s infinite alternate;
+    }
+
+    @keyframes glowBox {
+      from { box-shadow: 0 0 25px #0ff, 0 0 50px #0ff inset; }
+      to { box-shadow: 0 0 35px #ff0, 0 0 60px #0ff inset; }
+    }
+
+    button {
+      background: linear-gradient(45deg, #0ff, #00f, #0ff);
+      border: none;
+      padding: 1rem 2rem;
+      margin: 1rem;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: bold;
+      box-shadow: 0 0 10px #0ff;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    button:hover {
+      transform: scale(1.1);
+    }
+
+    .result {
+      margin-top: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .character {
+      background: #222;
+      padding: 1rem;
+      border-radius: 8px;
+      width: 150px;
+      box-shadow: 0 0 10px #fff4;
+      position: relative;
+    }
+
+    .character img {
+      max-width: 100%;
+      display: block;
+      margin: 0.5rem auto;
+      border-radius: 4px;
+      height: 200px; /* Set fixed height for all images */
+      object-fit: cover; /* Maintain aspect ratio and cover the space */
+    }
+
+    .sparking {
+      color: gold;
+      text-shadow: 0 0 10px gold, 0 0 15px red;
+      font-weight: bold;
+      animation: sparkle 1s infinite alternate;
+    }
+
+    .extreme {
+      color: violet;
+      text-shadow: 0 0 5px violet;
+    }
+
+    .hero {
+      color: #aaa;
+    }
+
+    .ultra {
+      color: cyan;
+      font-weight: bold;
+      text-shadow: 0 0 10px cyan, 0 0 20px purple;
+      animation: ultraGlow 1s infinite alternate;
+    }
+
+    @keyframes sparkle {
+      from { text-shadow: 0 0 5px gold; }
+      to { text-shadow: 0 0 15px red; }
+    }
+
+    @keyframes ultraGlow {
+      from { text-shadow: 0 0 10px cyan; }
+      to { text-shadow: 0 0 25px magenta; }
+    }
+
+    .spark-summon {
+      animation: sparkIn 1s ease-in-out;
+    }
+
+    .ultra-summon {
+      animation: ultraIn 1.5s ease-in-out;
+    }
+
+    @keyframes sparkIn {
+      0% { transform: scale(0.8); filter: brightness(2); opacity: 0; }
+      100% { transform: scale(1); filter: brightness(1); opacity: 1; }
+    }
+
+    @keyframes ultraIn {
+      0% { transform: rotateY(180deg) scale(0.5); opacity: 0; }
+      100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-shadow: 0 0 10px red, 0 0 20px orange;">🔥 Dragon Ball Legends Summon Simulator 🔥</h1>
+
+  <div class="container">
+    <button onclick="summonOne()">🎯 Single Summon</button>
+    <button onclick="summonTen()">💥 Multi Summon (x10)</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <!-- MP3 Audio Embed (Autoplay) -->
+  <audio id="bgm" autoplay loop>
+    <source src="audio/Dragon ball Z soundtrack 1.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+  </audio>
+
+  <!-- Play/Pause Audio Button -->
+  <button onclick="toggleAudio()">🔊 Play/Pause Audio</button>
+
+  <script>
+    window.onload = function() {
+      const audio = document.getElementById('bgm');
+      audio.play();  // Attempt to play the audio when the page loads
+    };
+
+    const characters = [
+      { name: 'Goku', rarity: 'Hero', image: 'images/goku.webp'  },
+      { name: 'Vegeta', rarity: 'Hero', image: 'images/vegeta.webp' },
+      { name: 'Krillin', rarity: 'Hero', image: 'images/krillin.png' },
+      { name: 'Frieza', rarity: 'Extreme', image: 'images/Frieza.webp' },
+      { name: 'Trunks', rarity: 'Extreme', image: 'images/Trunks.webp' },
+      { name: 'SSJ4 Gogeta', rarity: 'Sparking', image: 'images/SSJ4 Gogeta.webp' },
+      { name: 'UI Goku', rarity: 'Sparking', image: 'images/UI Goku.png' },
+      { name: 'Ultra Instinct Goku', rarity: 'Ultra', image: 'images/Ultra Instinct Goku.png' },
+      { name: 'Ultra Vegeta Blue', rarity: 'Ultra', image: 'images/Ultra Vegeta Blue.webp' }
+    ];
+
+    function playRaritySound(rarity) {
+      const sounds = {
+        Hero: new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg'),
+        Extreme: new Audio('https://actions.google.com/sounds/v1/cartoon/pop.ogg'),
+        Sparking: new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg'),
+        Ultra: new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg')
+      };
+      sounds[rarity]?.play();
+    }
+
+    function getRandomCharacter() {
+      const roll = Math.random() * 100;
+      let pool = [];
+      if (roll <= 0.5) {
+        pool = characters.filter(c => c.rarity === 'Ultra');
+      } else if (roll <= 1) {
+        pool = characters.filter(c => c.rarity === 'Sparking');
+      } else if (roll <= 10) {
+        pool = characters.filter(c => c.rarity === 'Extreme');
+      } else {
+        pool = characters.filter(c => c.rarity === 'Hero');
+      }
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function summonOne() {
+      const resultDiv = document.getElementById('result');
+      const char = getRandomCharacter();
+      playRaritySound(char.rarity);
+      const animationClass = char.rarity === 'Ultra' ? 'ultra-summon' : 
+                             char.rarity === 'Sparking' ? 'spark-summon' : '';
+      resultDiv.innerHTML = ` 
+        <div class="character ${char.rarity.toLowerCase()} ${animationClass}">
+          <img src="${char.image}" alt="${char.name}">
+          ⭐ ${char.rarity} - ${char.name}
+        </div>
+      `;
+    }
+
+    function summonTen() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+      for (let i = 0; i < 10; i++) {
+        const char = getRandomCharacter();
+        playRaritySound(char.rarity);
+        const animationClass = char.rarity === 'Ultra' ? 'ultra-summon' : 
+                               char.rarity === 'Sparking' ? 'spark-summon' : '';
+        resultDiv.innerHTML += ` 
+          <div class="character ${char.rarity.toLowerCase()} ${animationClass}">
+            <img src="${char.image}" alt="${char.name}">
+            ⭐ ${char.rarity} - ${char.name}
+          </div>
+        `;
+      }
+    }
+
+    // Toggle play/pause functionality
+    function toggleAudio() {
+      const audio = document.getElementById('bgm');
+      if (audio.paused) {
+        audio.play(); // If paused, play it
+      } else {
+        audio.pause(); // If playing, pause it
+      }
+    }
+  </script>
+</body>
+</html>
