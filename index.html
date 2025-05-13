@@ -48,7 +48,7 @@
       transform: scale(1.1);
     }
 
-    .result {
+    .result, .inventory, .battle-zone {
       margin-top: 2rem;
       display: flex;
       flex-wrap: wrap;
@@ -70,90 +70,101 @@
       display: block;
       margin: 0.5rem auto;
       border-radius: 4px;
-      height: 200px; /* Set fixed height for all images */
-      object-fit: cover; /* Maintain aspect ratio and cover the space */
+      height: 200px;
+      object-fit: cover;
     }
 
-    .sparking {
-      color: gold;
-      text-shadow: 0 0 10px gold, 0 0 15px red;
+    .battle-choice button {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      font-size: 1rem;
+      margin: 0.5rem;
+    }
+
+    .fire { background: radial-gradient(circle, red, darkred); }
+    .water { background: radial-gradient(circle, blue, navy); }
+    .grass { background: radial-gradient(circle, limegreen, green); }
+
+    #floating-tips {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 0 15px #0ff;
+      font-size: 1rem;
+      max-width: 250px;
+      z-index: 999;
+    }
+
+    .inventory-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .minimize-btn {
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      background: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
       font-weight: bold;
-      animation: sparkle 1s infinite alternate;
     }
 
-    .extreme {
-      color: violet;
-      text-shadow: 0 0 5px violet;
-    }
-
-    .hero {
-      color: #aaa;
-    }
-
-    .ultra {
-      color: cyan;
-      font-weight: bold;
-      text-shadow: 0 0 10px cyan, 0 0 20px purple;
-      animation: ultraGlow 1s infinite alternate;
-    }
-
-    @keyframes sparkle {
-      from { text-shadow: 0 0 5px gold; }
-      to { text-shadow: 0 0 15px red; }
-    }
-
-    @keyframes ultraGlow {
-      from { text-shadow: 0 0 10px cyan; }
-      to { text-shadow: 0 0 25px magenta; }
-    }
-
-    .spark-summon {
-      animation: sparkIn 1s ease-in-out;
-    }
-
-    .ultra-summon {
-      animation: ultraIn 1.5s ease-in-out;
-    }
-
-    @keyframes sparkIn {
-      0% { transform: scale(0.8); filter: brightness(2); opacity: 0; }
-      100% { transform: scale(1); filter: brightness(1); opacity: 1; }
-    }
-
-    @keyframes ultraIn {
-      0% { transform: rotateY(180deg) scale(0.5); opacity: 0; }
-      100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+    .inventory-hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
   <h1 style="text-shadow: 0 0 10px red, 0 0 20px orange;">🔥 Dragon Ball Legends Summon Simulator 🔥</h1>
 
-  <div class="container">
-    <button onclick="summonOne()">🎯 Single Summon</button>
-    <button onclick="summonTen()">💥 Multi Summon (x10)</button>
-    <div class="result" id="result"></div>
+  <div id="floating-tips">
+    💡 Tip: Ultra characters are super rare! Multi Summons give you 10 chances at once!
   </div>
 
-  <!-- MP3 Audio Embed (Autoplay) -->
+  <div class="container">
+    <div>Chrono Crystals: <span id="crystals">1000</span></div>
+    <button onclick="summonOne()">🎯 Single Summon (100 CC)</button>
+    <button onclick="summonTen()">💥 Multi Summon (1000 CC)</button>
+    <div class="result" id="result"></div>
+    <h2>Inventory</h2>
+    <div class="inventory-container">
+      <div class="inventory" id="inventory"></div>
+      <button class="minimize-btn" onclick="toggleInventory()">➖</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Battle Mode</h2>
+    <p>Select a hero to fight:</p>
+    <div class="inventory" id="heroSelection"></div>
+    <div class="battle-choice">
+      <button class="fire" onclick="chooseType('Fire')">🔥</button>
+      <button class="water" onclick="chooseType('Water')">💧</button>
+      <button class="grass" onclick="chooseType('Grass')">🌿</button>
+    </div>
+    <button onclick="startBattle()">⚔️ Start Battle</button>
+    <div id="battleResult" class="battle-zone"></div>
+  </div>
+
   <audio id="bgm" autoplay loop>
     <source src="audio/Dragon ball Z soundtrack 1.mp3" type="audio/mp3">
-    Your browser does not support the audio element.
   </audio>
-
-  <!-- Play/Pause Audio Button -->
   <button onclick="toggleAudio()">🔊 Play/Pause Audio</button>
 
   <script>
-    window.onload = function() {
-      const audio = document.getElementById('bgm');
-      audio.play();  // Attempt to play the audio when the page loads
-    };
-
     const characters = [
-      { name: 'Goku', rarity: 'Hero', image: 'images/goku.png'  },
+      { name: 'Goku', rarity: 'Hero', image: 'images/goku.png' },
       { name: 'Vegeta', rarity: 'Hero', image: 'images/vegeta.png' },
-      { name: 'Krillin', rarity: 'Hero', image: 'images/Krillin_saiyan_saga_mll_redesign_by_owc478-d76reym.webp' },
       { name: 'Frieza', rarity: 'Extreme', image: 'images/Frieza.png' },
       { name: 'Trunks', rarity: 'Extreme', image: 'images/Trunks.png' },
       { name: 'SSJ4 Gogeta', rarity: 'Sparking', image: 'images/SSJ4 Gogeta.png' },
@@ -162,71 +173,135 @@
       { name: 'Ultra Vegeta Blue', rarity: 'Ultra', image: 'images/Ultra Vegeta Blue.png' }
     ];
 
-    function playRaritySound(rarity) {
-      const sounds = {
-        Hero: new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg'),
-        Extreme: new Audio('https://actions.google.com/sounds/v1/cartoon/pop.ogg'),
-        Sparking: new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg'),
-        Ultra: new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg')
-      };
-      sounds[rarity]?.play();
+    let chronoCrystals = 1000;
+    let inventory = [];
+    let selectedHero = null;
+    let opponentType = null;
+
+    function updateChronoCrystals() {
+      document.getElementById('crystals').innerText = chronoCrystals;
+    }
+
+    function updateInventory() {
+      const inventoryDiv = document.getElementById('inventory');
+      inventoryDiv.innerHTML = '';
+      inventory.forEach(character => {
+        const characterDiv = document.createElement('div');
+        characterDiv.classList.add('character');
+        characterDiv.innerHTML = `
+          <img src="${character.image}" alt="${character.name}">
+          ⭐ ${character.rarity} - ${character.name}
+        `;
+        inventoryDiv.appendChild(characterDiv);
+      });
+    }
+
+    function updateHeroSelection() {
+      const heroSelectionDiv = document.getElementById('heroSelection');
+      heroSelectionDiv.innerHTML = '';
+      inventory.forEach(character => {
+        const heroButton = document.createElement('button');
+        heroButton.innerText = character.name;
+        heroButton.onclick = () => selectHero(character);
+        heroSelectionDiv.appendChild(heroButton);
+      });
+    }
+
+    function selectHero(character) {
+      selectedHero = character;
+      alert(`You selected ${selectedHero.name}!`);
     }
 
     function getRandomCharacter() {
       const roll = Math.random() * 100;
       let pool = [];
-      if (roll <= 0.5) {
+
+      if (roll < 1) { // 1% chance for Ultra
         pool = characters.filter(c => c.rarity === 'Ultra');
-      } else if (roll <= 1) {
+      } else if (roll < 5) { // 4% chance for Sparking
         pool = characters.filter(c => c.rarity === 'Sparking');
-      } else if (roll <= 10) {
+      } else if (roll < 15) { // 10% chance for Extreme
         pool = characters.filter(c => c.rarity === 'Extreme');
-      } else {
+      } else { // 80% chance for Hero
         pool = characters.filter(c => c.rarity === 'Hero');
       }
+
       return pool[Math.floor(Math.random() * pool.length)];
     }
 
     function summonOne() {
-      const resultDiv = document.getElementById('result');
-      const char = getRandomCharacter();
-      playRaritySound(char.rarity);
-      const animationClass = char.rarity === 'Ultra' ? 'ultra-summon' : 
-                             char.rarity === 'Sparking' ? 'spark-summon' : '';
-      resultDiv.innerHTML = ` 
-        <div class="character ${char.rarity.toLowerCase()} ${animationClass}">
-          <img src="${char.image}" alt="${char.name}">
-          ⭐ ${char.rarity} - ${char.name}
-        </div>
-      `;
+      if (chronoCrystals < 100) {
+        alert('Not enough Chrono Crystals!');
+        return;
+      }
+
+      chronoCrystals -= 100;
+      updateChronoCrystals();
+
+      const summonedCharacter = getRandomCharacter();
+      inventory.push(summonedCharacter);
+      updateInventory();
+      updateHeroSelection();
     }
 
     function summonTen() {
-      const resultDiv = document.getElementById('result');
-      resultDiv.innerHTML = '';
-      for (let i = 0; i < 10; i++) {
-        const char = getRandomCharacter();
-        playRaritySound(char.rarity);
-        const animationClass = char.rarity === 'Ultra' ? 'ultra-summon' : 
-                               char.rarity === 'Sparking' ? 'spark-summon' : '';
-        resultDiv.innerHTML += ` 
-          <div class="character ${char.rarity.toLowerCase()} ${animationClass}">
-            <img src="${char.image}" alt="${char.name}">
-            ⭐ ${char.rarity} - ${char.name}
-          </div>
-        `;
+      if (chronoCrystals < 1000) {
+        alert('Not enough Chrono Crystals!');
+        return;
       }
+
+      chronoCrystals -= 1000;
+      updateChronoCrystals();
+
+      for (let i = 0; i < 10; i++) {
+        const summonedCharacter = getRandomCharacter();
+        inventory.push(summonedCharacter);
+      }
+      updateInventory();
+      updateHeroSelection();
     }
 
-    // Toggle play/pause functionality
-    function toggleAudio() {
-      const audio = document.getElementById('bgm');
-      if (audio.paused) {
-        audio.play(); // If paused, play it
-      } else {
-        audio.pause(); // If playing, pause it
-      }
+    function chooseType(type) {
+      opponentType = type;
+      alert(`You selected ${opponentType} type!`);
     }
+
+    function startBattle() {
+      if (!selectedHero) {
+        alert('Please select a hero first!');
+        return;
+      }
+
+      const types = ['Fire', 'Water', 'Grass'];
+      const heroChoice = selectedHero.rarity;
+      const opponentChoice = opponentType;
+
+      let battleResult = '';
+
+      if (heroChoice === opponentChoice) {
+        battleResult = 'It\'s a tie!';
+      } else if (
+        (heroChoice === 'Fire' && opponentChoice === 'Grass') ||
+        (heroChoice === 'Water' && opponentChoice === 'Fire') ||
+        (heroChoice === 'Grass' && opponentChoice === 'Water')
+      ) {
+        battleResult = 'You win!';
+        chronoCrystals += 100;
+      } else {
+        battleResult = 'You lose!';
+        chronoCrystals -= 100;
+      }
+
+      document.getElementById('battleResult').innerText = battleResult;
+      updateChronoCrystals();
+    }
+
+    function toggleInventory() {
+      const inventoryDiv = document.getElementById('inventory');
+      inventoryDiv.classList.toggle('inventory-hidden');
+    }
+
+    updateChronoCrystals();
   </script>
 </body>
 </html>
